@@ -20,6 +20,12 @@ export function useUploadFile() {
             if (!file.type) throw new Error("Invalid file");
             if (file.size > 10 * 1024 * 1024) throw new Error("File too large");
 
+            // SIMULATION FOR TESTING: Fail if file name contains 'error'
+            if (file.name.toLowerCase().includes("error")) {
+                await new Promise(r => setTimeout(r, 1000)); // wait a bit to simulate network
+                throw new Error("Simulated upload error");
+            }
+
             const { uploadUrl, fields, key, fileUrl } = await getPresignedUrl({
                 fileName: file.name,
                 fileType: file.type,

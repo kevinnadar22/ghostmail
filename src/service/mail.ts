@@ -18,9 +18,16 @@ export class MailService {
    */
   static async sendEmail(params: SendEmailParams) {
     const { to, subject, html, from, attachments } = params;
+    let fromEmail = "";
+    if (from) {
+      fromEmail = from + "<anonymous@mariakevin.in>";
+    }
+    else {
+      fromEmail = "anonymous@mariakevin.in";
+    }
 
     return await resend.emails.send({
-      from: from || ""+ "<anonymous@mariakevin.in>",
+      from: fromEmail,
       to,
       subject,
       html,

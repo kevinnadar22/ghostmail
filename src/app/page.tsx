@@ -43,14 +43,14 @@ const App: React.FC = () => {
   const [files, setFiles] = useState<File[]>([]);
   const [uploadProgress, setUploadProgress] = useState<Record<number, number>>({});
   const [failedUploads, setFailedUploads] = useState<number[]>([]);
-  
+
   const [recentEmails, setRecentEmails] = useState<string[]>([]);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
-  const [editorKey, setEditorKey] = useState(0); 
-  
+  const [editorKey, setEditorKey] = useState(0);
+
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [uploadedKeys, setUploadedKeys] = useState<string[]>([]);
-  
+
   const { mutateAsync: sendEmail, isPending: isSendingEmail } = useSendEmail();
   const { mutateAsync: uploadFile, isPending: isUploading } = useUploadFile();
 
@@ -69,31 +69,35 @@ const App: React.FC = () => {
   }, []);
 
   const executeSend = async (keys: string[]) => {
-      try {
-        await sendEmail({
-          to: formData.to,
-          fromName: formData.fromName,
-          subject: formData.subject || "No Subject",
-          html: formData.body,
-          files: keys,
-          captchaToken: captchaToken,
-        });
+    const toastId = toast.loading("Sending email... Please wait");
+    try {
+      await sendEmail({
+        to: formData.to,
+        fromName: formData.fromName,
+        subject: formData.subject || "No Subject",
+        html: formData.body,
+        files: keys,
+        captchaToken: captchaToken,
+      });
+      
+      toast.dismiss(toastId);
 
-        // Reset form on success
-        setFormData(prev => ({ ...prev, to: '', subject: '', body: '', fromName: '' }));
-        setFiles([]);
-        setUploadProgress({});
-        setFailedUploads([]);
-        setUploadedKeys([]);
-        setCaptchaToken("");
-        setEditorKey(prev => prev + 1);
-        setIsConfirmOpen(false);
-        if (turnstileRef.current) turnstileRef.current.reset();
-        // Hook handles success toast
-      } catch (error) {
-        console.error("Failed to send email flow", error);
-        toast.error("Failed to send email. Please try again.");
-      }
+      // Reset form on success
+      setFormData(prev => ({ ...prev, to: '', subject: '', body: '', fromName: '' }));
+      setFiles([]);
+      setUploadProgress({});
+      setFailedUploads([]);
+      setUploadedKeys([]);
+      setCaptchaToken("");
+      setEditorKey(prev => prev + 1);
+      setIsConfirmOpen(false);
+      if (turnstileRef.current) turnstileRef.current.reset();
+      // Hook handles success toast
+    } catch (error) {
+      toast.dismiss(toastId);
+      console.error("Failed to send email flow", error);
+      toast.error("Failed to send email. Please try again.");
+    }
   };
 
   const handleSend = async () => {
@@ -102,10 +106,10 @@ const App: React.FC = () => {
       return;
     }
 
-    if(!captchaToken) {
-       toast.info("Verifying security... Please wait.");
-       if (turnstileRef.current) turnstileRef.current.execute();
-       return;
+    if (!captchaToken) {
+      toast.info("Verifying security... Please wait.");
+      if (turnstileRef.current) turnstileRef.current.execute();
+      return;
     }
 
     if (files.length > config.MAX_FILE_COUNT) {
@@ -116,12 +120,12 @@ const App: React.FC = () => {
     // Save history
     const normalizedEmail = formData.to.trim();
     if (normalizedEmail) {
-       const newHistory = [
-         normalizedEmail,
-         ...recentEmails.filter(e => e !== normalizedEmail)
-       ].slice(0, 5);
-       setRecentEmails(newHistory);
-       localStorage.setItem('ghost_recipients', JSON.stringify(newHistory));
+      const newHistory = [
+        normalizedEmail,
+        ...recentEmails.filter(e => e !== normalizedEmail)
+      ].slice(0, 5);
+      setRecentEmails(newHistory);
+      localStorage.setItem('ghost_recipients', JSON.stringify(newHistory));
     }
 
     setUploadProgress({});
@@ -130,29 +134,29 @@ const App: React.FC = () => {
     const currentFailedIndices: number[] = [];
 
     if (files.length > 0) {
-        // Parallel uploads with tracking
-        await Promise.all(files.map(async (file, index) => {
-            try {
-                const result = await uploadFile({
-                    file,
-                    onProgress: (progress) => {
-                        setUploadProgress(prev => ({ ...prev, [index]: progress }));
-                    }
-                });
-                currentUploadedKeys.push(result.key);
-            } catch (error) {
-                console.error(`Failed to upload ${file.name}`, error);
-                currentFailedIndices.push(index);
-                setFailedUploads(prev => [...prev, index]);
+      // Parallel uploads with tracking
+      await Promise.all(files.map(async (file, index) => {
+        try {
+          const result = await uploadFile({
+            file,
+            onProgress: (progress) => {
+              setUploadProgress(prev => ({ ...prev, [index]: progress }));
             }
-        }));
+          });
+          currentUploadedKeys.push(result.key);
+        } catch (error) {
+          console.error(`Failed to upload ${file.name}`, error);
+          currentFailedIndices.push(index);
+          setFailedUploads(prev => [...prev, index]);
+        }
+      }));
     }
 
     setUploadedKeys(currentUploadedKeys);
 
     if (currentFailedIndices.length > 0) {
-        setIsConfirmOpen(true);
-        return;
+      setIsConfirmOpen(true);
+      return;
     }
 
     await executeSend(currentUploadedKeys);
@@ -250,7 +254,7 @@ const App: React.FC = () => {
             <div className="text-xs text-muted-foreground hidden sm:block w-full sm:w-auto text-center sm:text-left">
               0 trackers blocked. IP masked.
             </div>
-            
+
             <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto justify-end">
               <Button
                 onClick={handleSend}
@@ -273,9 +277,9 @@ const App: React.FC = () => {
 
       {/* Footer / Feedback Trigger */}
       <div className="mt-12 text-center flex justify-center items-center gap-6">
-        <a 
-          href="https://mariakevin.in" 
-          target="_blank" 
+        <a
+          href="https://mariakevin.in"
+          target="_blank"
           rel="noopener noreferrer"
           className="text-xs font-medium text-muted-foreground hover:text-zinc-300 transition-colors"
         >
@@ -293,42 +297,44 @@ const App: React.FC = () => {
       {/* Modals */}
       <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
         <DialogContent>
-           <DialogHeader>
-             <DialogTitle className="flex items-center gap-2 text-destructive">
-               <AlertCircle size={20} />
-               Upload Failed
-             </DialogTitle>
-           </DialogHeader>
-           <div className="py-4 text-sm text-zinc-400">
-             <p>Some files failed to upload. Do you want to send the email without the failed attachments?</p>
-             <ul className="list-disc list-inside mt-2 text-zinc-500">
-                {failedUploads.map(index => (
-                  <li key={index} className="truncate">{files[index]?.name}</li>
-                ))}
-             </ul>
-           </div>
-           <DialogFooter>
-             <Button variant="ghost" onClick={() => setIsConfirmOpen(false)}>Cancel</Button>
-             <Button variant="secondary" onClick={() => executeSend(uploadedKeys)}>Send Anyway</Button>
-           </DialogFooter>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertCircle size={20} />
+              Upload Failed
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4 text-sm text-zinc-400">
+            <p>Some files failed to upload. Do you want to send the email without the failed attachments?</p>
+            <ul className="list-disc list-inside mt-2 text-zinc-500">
+              {failedUploads.map(index => (
+                <li key={index} className="truncate">{files[index]?.name}</li>
+              ))}
+            </ul>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsConfirmOpen(false)} disabled={isSending}>Cancel</Button>
+            <Button variant="secondary" onClick={() => executeSend(uploadedKeys)} disabled={isSending}>
+              {isSending ? <Loader2 size={16} className="animate-spin" /> : "Send Anyway"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
-      
+
       {/* Invisible Turnstile */}
       {config.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
-         <Turnstile
-           ref={turnstileRef}
-           siteKey={config.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
-           onSuccess={(token) => setCaptchaToken(token)}
-           onExpire={() => setCaptchaToken("")}
-           options={{
-             theme: 'dark',
-             size: 'invisible' // Non-blocking
-           }}
-           className="hidden" // Ensure non-blocking visually
-         />
+        <Turnstile
+          ref={turnstileRef}
+          siteKey={config.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+          onSuccess={(token) => setCaptchaToken(token)}
+          onExpire={() => setCaptchaToken("")}
+          options={{
+            theme: 'dark',
+            size: 'invisible' // Non-blocking
+          }}
+          className="hidden" // Ensure non-blocking visually
+        />
       )}
-      
+
       <FeedbackModal
         isOpen={isFeedbackOpen}
         onClose={() => setIsFeedbackOpen(false)}

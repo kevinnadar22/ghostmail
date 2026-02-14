@@ -20,7 +20,7 @@ export class MailService {
     const { to, subject, html, from, attachments } = params;
 
     return await resend.emails.send({
-      from: from || "GhostMail <onboarding@resend.dev>", // Default from address if not provided
+      from: from || ""+ "<anonymous@mariakevin.in>",
       to,
       subject,
       html,

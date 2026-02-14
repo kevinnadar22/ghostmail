@@ -73,7 +73,7 @@ const App: React.FC = () => {
         await sendEmail({
           to: formData.to,
           fromName: formData.fromName,
-          subject: formData.subject || "Untitled Message",
+          subject: formData.subject || "No Subject",
           html: formData.body,
           files: keys,
           captchaToken: captchaToken,
@@ -103,7 +103,8 @@ const App: React.FC = () => {
     }
 
     if(!captchaToken) {
-       toast.error("Please complete the captcha.");
+       toast.info("Verifying security... Please wait.");
+       if (turnstileRef.current) turnstileRef.current.execute();
        return;
     }
 
@@ -167,7 +168,7 @@ const App: React.FC = () => {
             <Ghost size={24} className="text-zinc-100" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-zinc-100 tracking-tight">GhostMail</h1>
+            <h1 className="text-2xl font-bold text-zinc-100 tracking-tight">Ghost Mail</h1>
             <p className="text-sm text-muted-foreground">Untraceable communication</p>
           </div>
         </div>
@@ -260,7 +261,6 @@ const App: React.FC = () => {
                   <span className="flex items-center gap-2"><Loader2 size={16} className="animate-spin" /></span>
                 ) : (
                   <>
-                    <Send size={14} className="mr-2" />
                     Send Anonymously
                   </>
                 )}
@@ -313,6 +313,21 @@ const App: React.FC = () => {
            </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      {/* Invisible Turnstile */}
+      {config.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
+         <Turnstile
+           ref={turnstileRef}
+           siteKey={config.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+           onSuccess={(token) => setCaptchaToken(token)}
+           onExpire={() => setCaptchaToken("")}
+           options={{
+             theme: 'dark',
+             size: 'invisible' // Non-blocking
+           }}
+           className="hidden" // Ensure non-blocking visually
+         />
+      )}
       
       <FeedbackModal
         isOpen={isFeedbackOpen}

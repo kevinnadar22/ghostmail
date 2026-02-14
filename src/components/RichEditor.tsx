@@ -94,9 +94,17 @@ export const RichEditor: React.FC<RichEditorProps> = ({ value, onChange, onFiles
   // COMPLETE REWRITE OF addFiles to avoid side-effect in setState
   const addFilesSafe = useCallback((files: File[]) => {
      setAttachedFiles(prev => {
-        if (prev.length + files.length > config.MAX_FILE_COUNT) {
-           toast.error(`You can only attach up to ${config.MAX_FILE_COUNT} files at a time.`);
+        const remainingSlots = config.MAX_FILE_COUNT - prev.length;
+        
+        if (remainingSlots <= 0) {
+           toast.error(`You have already reached the limit of ${config.MAX_FILE_COUNT} files.`);
            return prev;
+        }
+
+        let filesToProcess = files;
+        if (files.length > remainingSlots) {
+           toast.error(`Limit exceeded. Only the first ${remainingSlots} file(s) were added.`);
+           filesToProcess = files.slice(0, remainingSlots);
         }
         
         const maxSize = config.MAX_FILE_SIZE_BYTES; 
@@ -105,7 +113,7 @@ export const RichEditor: React.FC<RichEditorProps> = ({ value, onChange, onFiles
         const validFiles: File[] = [];
         let sizeExceeded = false;
         
-        for (const file of files) {
+        for (const file of filesToProcess) {
            if (newTotalSize + file.size > maxSize) {
              sizeExceeded = true;
              toast.error(`Total size exceeds 25MB. "${file.name}" cannot be added.`);
@@ -116,14 +124,10 @@ export const RichEditor: React.FC<RichEditorProps> = ({ value, onChange, onFiles
         }
 
         if (sizeExceeded) {
-           // Toasts handled in loop or just return prev.
-           // Since we broke locally, we might have multiple files.
-           // If we just want to warn about the file that broke the camel's back:
            return prev;
         }
 
         const newFiles = [...prev, ...validFiles];
-        // Don't call onFilesChange here!
         return newFiles;
      });
   }, []);
@@ -208,6 +212,7 @@ export const RichEditor: React.FC<RichEditorProps> = ({ value, onChange, onFiles
           ref={fileInputRef}
           className="hidden"
           multiple
+          accept="*"
           onChange={handleFileChange}
         />
 

@@ -1,4 +1,13 @@
 export const config = {
-  apiUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1',
-  appUrl: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+  AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
+  AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
+  AWS_REGION: process.env.AWS_REGION,
+  S3_BUCKET: process.env.S3_BUCKET,
+  RESEND_API_KEY: process.env.RESEND_API_KEY,
+  TURNSTILE_SECRET: process.env.TURNSTILE_SECRET,
+  NEXT_PUBLIC_TURNSTILE_SITE_KEY: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY,
+  UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
+  UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
+  MAX_FILE_SIZE_BYTES: 25 * 1024 * 1024,
+  MAX_FILE_COUNT: 10,
 };

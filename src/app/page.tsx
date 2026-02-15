@@ -105,11 +105,11 @@ const App: React.FC = () => {
       setEditorKey(prev => prev + 1);
       setIsConfirmOpen(false);
       if (turnstileRef.current) turnstileRef.current.reset();
-      // Hook handles success toast
-    } catch (error) {
+      toast.success("Email sent successfully! Check spam folders too.");
+    } catch (error: any) {
       toast.dismiss(toastId);
       console.error("Failed to send email flow", error);
-      toast.error("Failed to send email. Please try again.");
+      toast.error(error.message || "Failed to send email. Please try again.");
     }
   };
 

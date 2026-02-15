@@ -6,6 +6,7 @@ export const emailSchema = z.object({
   html: z.string().min(1, "Email body is required"),
   files: z.array(z.string()).optional(),
   captchaToken: z.string().min(1, "Captcha token is required"),
+  from: z.string().optional(),
 });
 
 export type EmailRequest = z.infer<typeof emailSchema>;

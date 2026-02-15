@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
             return ApiResponse.BadRequest(parseZodError(result.error));
         }
 
-        const { to, subject, html, files, captchaToken } = result.data;
+        const { to, subject, html, files, captchaToken, from } = result.data;
 
         // 4. Captcha Verification
         const isCaptchaValid = await CaptchaService.verify(captchaToken, ip);
@@ -51,6 +51,7 @@ export async function POST(req: NextRequest) {
             to,
             subject,
             html,
+            from,
             attachments,
         });
 

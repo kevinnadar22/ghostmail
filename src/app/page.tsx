@@ -287,17 +287,11 @@ const App: React.FC = () => {
               )}
             />
             {errors.body && <span className="text-[10px] text-red-500 pl-1">{errors.body.message}</span>}
-            <p className="text-[10px] text-muted-foreground pl-1 flex items-center gap-1">
-              <AlertCircle size={10} />
-              <span>Files and images are embedded directly. Large attachments may impact delivery speed.</span>
-            </p>
+
           </div>
 
           {/* Action Footer */}
           <div className="pt-4 flex flex-col sm:flex-row justify-between items-center border-t border-border mt-6 gap-4">
-            <div className="text-xs text-muted-foreground hidden sm:block w-full sm:w-auto text-center sm:text-left">
-              0 trackers blocked. IP masked.
-            </div>
 
             {showCaptcha && config.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
               <Turnstile

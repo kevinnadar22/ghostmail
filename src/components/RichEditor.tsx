@@ -218,10 +218,10 @@ export const RichEditor: React.FC<RichEditorProps> = ({ value, onChange, onFiles
 
         {/* Toolbar */}
         <div className="flex flex-wrap items-center gap-0.5 p-1 border-b border-border bg-surface/50 min-h-[40px]">
-          <Button variant="ghost" size="icon" onClick={triggerFileUpload} title="Attach File or Image">
+          <Button type="button" variant="ghost" size="icon" onClick={triggerFileUpload} title="Attach File or Image">
             <Paperclip size={14} />
           </Button>
-          <Button variant="ghost" size="icon" onClick={openLinkDialog} title="Insert Link">
+          <Button type="button" variant="ghost" size="icon" onClick={openLinkDialog} title="Insert Link">
             <LinkIcon size={14} />
           </Button>
         </div>

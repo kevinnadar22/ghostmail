@@ -10,4 +10,6 @@ export const config = {
   UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
   MAX_FILE_SIZE_BYTES: 25 * 1024 * 1024,
   MAX_FILE_COUNT: 10,
+  EXCLUDE_RATELIMIT_EMAILS: process.env.EXCLUDE_RATELIMIT_EMAILS?.split(",") || [],
 };
+

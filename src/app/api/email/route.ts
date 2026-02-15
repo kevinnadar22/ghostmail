@@ -9,23 +9,12 @@ import { parseZodError } from "@/helpers/api-errors";
 
 export async function POST(req: NextRequest) {
     try {
-        // 1. Identify Identification Signals (used for rate limiting and fingerprinting)
+        // 1. Identify Identification Signals
         const ip = req.headers.get("x-forwarded-for")?.split(",")[0] ?? "127.0.0.1";
         const userAgent = req.headers.get("user-agent") || "unknown";
         const timezone = req.headers.get("x-timezone") || "unknown";
 
-        // 2. Apply Rate Limiting via RatelimitService (Pure Params)
-        const { success } = await RatelimitService.check({
-            ip,
-            userAgent,
-            timezone
-        });
-        
-        if (!success) {
-            return ApiResponse.TooManyRequests("Too many requests. Please try again later.");
-        }
-
-        // 3. Parse and Validate Body
+        // 2. Parse and Validate Body
         const json = await req.json();
         const result = emailSchema.safeParse(json);
 
@@ -34,6 +23,21 @@ export async function POST(req: NextRequest) {
         }
 
         const { to, subject, html, files, captchaToken, from } = result.data;
+
+        // 3. Apply Rate Limiting (Pass email to check for exclusions)
+        // If 'to' is an array, we check based on the first recipient
+        const emailToCheck = Array.isArray(to) ? to[0] : to;
+        const { success } = await RatelimitService.check({
+            ip,
+            userAgent,
+            timezone,
+            email: emailToCheck
+        });
+        
+        if (!success) {
+            return ApiResponse.TooManyRequests("Too many requests. Please try again later.");
+        }
+
 
         // 4. Captcha Verification
         const isCaptchaValid = await CaptchaService.verify(captchaToken, ip);

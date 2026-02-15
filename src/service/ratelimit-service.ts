@@ -1,14 +1,20 @@
 import { minuteRateLimit, dailyRateLimit } from "@/lib/ratelimit";
 import { getRequestFingerprint, FingerprintSignals } from "@/helpers/fingerprint";
+import { config } from "@/config";
 
 export class RatelimitService {
   /**
    * Checks if a request should be rate limited based on identification signals.
    * 
-   * @param signals - The identification signals (ip, userAgent, timezone)
+   * @param signals - The identification signals (ip, userAgent, timezone, email)
    * @returns An object containing success boolean and the limit info
    */
   static async check(signals: FingerprintSignals) {
+    // 0. Skip rate limit for exempted emails
+    if (signals.email && config.EXCLUDE_RATELIMIT_EMAILS.includes(signals.email)) {
+      return { success: true, limit: 0, remaining: 0, reset: 0, pending: Promise.resolve() };
+    }
+
     // 1. Generate fingerprint using the pure helper
     const identifier = getRequestFingerprint(signals);
     
@@ -25,3 +31,4 @@ export class RatelimitService {
     return minRes;
   }
 }
+

@@ -4,7 +4,9 @@ export interface FingerprintSignals {
     ip: string;
     userAgent: string;
     timezone: string;
+    email?: string;
 }
+
 
 /**
  * Generates a unique fingerprint hash based on core identification signals.

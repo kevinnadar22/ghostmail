@@ -11,7 +11,7 @@ export const minuteRateLimit = new Ratelimit({
 
 export const dailyRateLimit = new Ratelimit({
   redis,
-  limiter: Ratelimit.slidingWindow(10, "1 d"),
+  limiter: Ratelimit.slidingWindow(5, "1 d"),
   prefix: "ratelimit:day",
 });
 

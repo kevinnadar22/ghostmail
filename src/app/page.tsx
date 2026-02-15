@@ -79,7 +79,7 @@ const App: React.FC = () => {
         files: keys,
         captchaToken: captchaToken,
       });
-      
+
       toast.dismiss(toastId);
 
       // Reset form on success
@@ -327,11 +327,17 @@ const App: React.FC = () => {
           siteKey={config.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
           onSuccess={(token) => setCaptchaToken(token)}
           onExpire={() => setCaptchaToken("")}
+          onError={() => {
+            setCaptchaToken("");
+            toast.error("Security verification failed. Please retry.");
+          }}
+
           options={{
             theme: 'dark',
             size: 'invisible' // Non-blocking
           }}
-          className="hidden" // Ensure non-blocking visually
+          className="opacity-0 pointer-events-none absolute"
+
         />
       )}
 

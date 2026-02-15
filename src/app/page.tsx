@@ -251,10 +251,27 @@ const App: React.FC = () => {
 
           {/* Action Footer */}
           <div className="pt-4 flex flex-col sm:flex-row justify-between items-center border-t border-border mt-6 gap-4">
-            <div className="text-xs text-muted-foreground hidden sm:block w-full sm:w-auto text-center sm:text-left">
-              0 trackers blocked. IP masked.
-            </div>
+            {/* Invisible Turnstile */}
+            {config.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
+              <Turnstile
+                ref={turnstileRef}
+                siteKey={config.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+                onSuccess={(token) => setCaptchaToken(token)}
+                onExpire={() => setCaptchaToken("")}
+                onError={(error) => {
+                  console.error("Turnstile error:", error);
+                  setCaptchaToken("");
+                  toast.error(`Security verification failed. Please retry. ${error}`);
+                }}
 
+                options={{
+                  theme: 'dark',
+                  size: 'invisible' // Non-blocking
+                }}
+              className="opacity-0 pointer-events-none absolute"
+
+              />
+            )}
             <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto justify-end">
               <Button
                 onClick={handleSend}
@@ -320,27 +337,7 @@ const App: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Invisible Turnstile */}
-      {config.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
-        <Turnstile
-          ref={turnstileRef}
-          siteKey={config.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
-          onSuccess={(token) => setCaptchaToken(token)}
-          onExpire={() => setCaptchaToken("")}
-          onError={(error) => {
-            console.error("Turnstile error:", error);
-            setCaptchaToken("");
-            toast.error(`Security verification failed. Please retry. ${error}`);
-          }}
 
-          options={{
-            theme: 'dark',
-            // size: 'invisible' // Non-blocking
-          }}
-          // className="opacity-0 pointer-events-none absolute"
-
-        />
-      )}
 
       <FeedbackModal
         isOpen={isFeedbackOpen}

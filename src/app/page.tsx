@@ -270,9 +270,10 @@ const App: React.FC = () => {
 
                 options={{
                   theme: 'dark',
-                  size: 'invisible' // Non-blocking
+                  // make the size small
+                  size: 'normal' // Non-blocking
                 }}
-              className="opacity-0 pointer-events-none absolute"
+              // className="opacity-0 pointer-events-none absolute"
 
               />
             )}

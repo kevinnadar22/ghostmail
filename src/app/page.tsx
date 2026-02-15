@@ -337,7 +337,7 @@ const App: React.FC = () => {
             theme: 'dark',
             // size: 'invisible' // Non-blocking
           }}
-          className="opacity-0 pointer-events-none absolute"
+          // className="opacity-0 pointer-events-none absolute"
 
         />
       )}

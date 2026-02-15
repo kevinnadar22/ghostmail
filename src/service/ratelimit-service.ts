@@ -1,4 +1,4 @@
-import { minuteRateLimit, dailyRateLimit } from "@/lib/ratelimit";
+import { minuteRateLimit, dailyRateLimit, presignRateLimit } from "@/lib/ratelimit";
 import { getRequestFingerprint, FingerprintSignals } from "@/helpers/fingerprint";
 import { config } from "@/config";
 
@@ -29,6 +29,18 @@ export class RatelimitService {
     if (!dayRes.success) return dayRes;
 
     return minRes;
+  }
+
+  /**
+   * Checks if a presign request should be rate limited.
+   * Limit: 100/day per IP/UserAgent combination
+   */
+  static async checkPresign(signals: FingerprintSignals) {
+    // 1. Generate fingerprint
+    const identifier = getRequestFingerprint(signals);
+
+    // 2. Check the presign-specific rate limit
+    return await presignRateLimit.limit(identifier);
   }
 }
 

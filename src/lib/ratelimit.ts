@@ -15,3 +15,9 @@ export const dailyRateLimit = new Ratelimit({
   prefix: "ratelimit:day",
 });
 
+export const presignRateLimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(100, "1 d"),
+  prefix: "ratelimit:presign",
+});
+

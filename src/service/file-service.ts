@@ -30,9 +30,12 @@ export class FileService {
     const expiration = 3600; // 1 hour
     const maxFileSize = 10 * 1024 * 1024; // 10MB
     
+    // Sanitize fileName to prevent path traversal or weird characters
+    const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9.-]/g, "_").replace(/^\.+/g, "");
+    
     // Generate a unique key for the file to prevent collisions
     const uniqueId = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
-    const objectKey = `uploads/${uniqueId}-${fileName}`;
+    const objectKey = `uploads/${uniqueId}-${sanitizedFileName}`;
 
     const { url, fields } = await createPresignedPost(s3, {
       Bucket: config.S3_BUCKET!,
@@ -68,6 +71,12 @@ export class FileService {
     const attachments: FileAttachment[] = [];
 
     for (const key of keys) {
+      // SECURITY: Ensure keys only point to the uploads directory
+      if (!key.startsWith("uploads/")) {
+        console.warn(`Blocked attempt to access invalid S3 key: ${key}`);
+        continue;
+      }
+
       try {
         const file = await s3.send(new GetObjectCommand({
           Bucket: config.S3_BUCKET,

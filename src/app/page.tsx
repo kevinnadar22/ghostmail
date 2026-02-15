@@ -50,6 +50,7 @@ const App: React.FC = () => {
 
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [uploadedKeys, setUploadedKeys] = useState<string[]>([]);
+  const [showCaptcha, setShowCaptcha] = useState(false);
 
   const { mutateAsync: sendEmail, isPending: isSendingEmail } = useSendEmail();
   const { mutateAsync: uploadFile, isPending: isUploading } = useUploadFile();
@@ -107,8 +108,8 @@ const App: React.FC = () => {
     }
 
     if (!captchaToken) {
-      toast.info("Verifying security... Please wait.");
-      if (turnstileRef.current) turnstileRef.current.execute();
+      setShowCaptcha(true);
+      toast.info("Verifying security...");
       return;
     }
 
@@ -161,6 +162,20 @@ const App: React.FC = () => {
 
     await executeSend(currentUploadedKeys);
   };
+
+  // Automatically continue sending after verification
+  useEffect(() => {
+    if (captchaToken && formData.to && formData.body) {
+      handleSend();
+    }
+  }, [captchaToken]);
+
+  // Execute Turnstile when it becomes visible
+  useEffect(() => {
+    if (showCaptcha && turnstileRef.current) {
+      turnstileRef.current.execute();
+    }
+  }, [showCaptcha]);
 
   return (
     <div className="min-h-screen flex flex-col items-center py-10 px-4 sm:px-6 lg:px-8 selection:bg-zinc-800 selection:text-zinc-100">
@@ -255,26 +270,26 @@ const App: React.FC = () => {
               0 trackers blocked. IP masked.
             </div>
 
-            {/* Invisible Turnstile */}
-            {config.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
+            {showCaptcha && config.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
               <Turnstile
                 ref={turnstileRef}
                 siteKey={config.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
-                onSuccess={(token) => setCaptchaToken(token)}
+                onSuccess={(token) => {
+                  setCaptchaToken(token);
+                  setShowCaptcha(false);
+                }}
                 onExpire={() => setCaptchaToken("")}
                 onError={(error) => {
                   console.error("Turnstile error:", error);
                   setCaptchaToken("");
-                  toast.error(`Security verification failed. Please retry. ${error}`);
+                  setShowCaptcha(false);
+                  toast.error("Security verification failed. Please try again.");
                 }}
-
                 options={{
-                  theme: 'dark',
-                  // make the size small
-                  size: 'normal' // Non-blocking
+                  theme: "dark",
+                  size: "invisible",
+                  execution: "execute",
                 }}
-              // className="opacity-0 pointer-events-none absolute"
-
               />
             )}
 

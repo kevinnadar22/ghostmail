@@ -327,9 +327,10 @@ const App: React.FC = () => {
           siteKey={config.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
           onSuccess={(token) => setCaptchaToken(token)}
           onExpire={() => setCaptchaToken("")}
-          onError={() => {
+          onError={(error) => {
+            console.error("Turnstile error:", error);
             setCaptchaToken("");
-            toast.error("Security verification failed. Please retry.");
+            toast.error(`Security verification failed. Please retry. ${error}`);
           }}
 
           options={{

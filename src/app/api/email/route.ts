@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
             return ApiResponse.BadRequest(parseZodError(result.error));
         }
 
-        const { to, subject, html, files, captchaToken, from } = result.data;
+        const { to, subject, html, files, captchaToken, fromName } = result.data;
 
         // 3. Apply Rate Limiting (Pass email to check for exclusions)
         // If 'to' is an array, we check based on the first recipient
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
             to,
             subject,
             html,
-            from,
+            fromName,
             attachments,
         });
 

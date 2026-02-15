@@ -62,7 +62,6 @@ const App: React.FC = () => {
 
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [uploadedKeys, setUploadedKeys] = useState<string[]>([]);
-  const [showCaptcha, setShowCaptcha] = useState(false);
 
   const { mutateAsync: sendEmail, isPending: isSendingEmail } = useSendEmail();
   const { mutateAsync: uploadFile, isPending: isUploading } = useUploadFile();
@@ -122,7 +121,7 @@ const App: React.FC = () => {
     }
 
     if (!captchaToken) {
-      setShowCaptcha(true);
+      turnstileRef.current?.execute();
       toast.info("Verifying security...");
       return;
     }
@@ -185,12 +184,6 @@ const App: React.FC = () => {
     }
   }, [captchaToken, handleSubmit]);
 
-  // Execute Turnstile when it becomes visible
-  useEffect(() => {
-    if (showCaptcha && turnstileRef.current) {
-      turnstileRef.current.execute();
-    }
-  }, [showCaptcha]);
 
   const formData = watch();
 
@@ -291,32 +284,30 @@ const App: React.FC = () => {
           </div>
 
           {/* Action Footer */}
-          <div className="pt-4 flex flex-col sm:flex-row justify-between items-center border-t border-border mt-6 gap-4">
+          <div className="pt-4 flex flex-col sm:flex-row justify-end items-end border-t border-border mt-6 gap-4">
 
-            {showCaptcha && config.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
+            {config.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
               <Turnstile
                 ref={turnstileRef}
                 siteKey={config.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
                 onSuccess={(token) => {
                   setCaptchaToken(token);
-                  setShowCaptcha(false);
                 }}
                 onExpire={() => setCaptchaToken("")}
                 onError={(error) => {
                   console.error("Turnstile error:", error);
                   setCaptchaToken("");
-                  setShowCaptcha(false);
                   toast.error("Security verification failed. Please try again.");
                 }}
                 options={{
                   theme: "dark",
-                  size: "invisible",
+                  appearance: "interaction-only",
                   execution: "execute",
                 }}
               />
             )}
 
-            <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto justify-end">
+            <div className="flex flex-col sm:flex-row items-end gap-4 w-full sm:w-auto justify-end">
               <Button
                 type="submit"
                 disabled={isSending}

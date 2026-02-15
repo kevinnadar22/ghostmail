@@ -5,7 +5,7 @@ export interface SendEmailParams {
   to: string | string[];
   subject: string;
   html: string;
-  from?: string;
+  fromName?: string;
   attachments?: FileAttachment[];
 }
 
@@ -17,10 +17,10 @@ export class MailService {
    * @returns The result from Resend API
    */
   static async sendEmail(params: SendEmailParams) {
-    const { to, subject, html, from, attachments } = params;
+    const { to, subject, html, fromName, attachments } = params;
     let fromEmail = "";
-    if (from) {
-      fromEmail = from + "<anonymous@mariakevin.in>";
+    if (fromName) {
+      fromEmail = fromName + "<anonymous@mariakevin.in>";
     }
     else {
       fromEmail = "anonymous@mariakevin.in";

@@ -1,4 +1,4 @@
-import { ratelimit } from "@/lib/ratelimit";
+import { minuteRateLimit, dailyRateLimit } from "@/lib/ratelimit";
 import { getRequestFingerprint, FingerprintSignals } from "@/helpers/fingerprint";
 
 export class RatelimitService {
@@ -12,7 +12,16 @@ export class RatelimitService {
     // 1. Generate fingerprint using the pure helper
     const identifier = getRequestFingerprint(signals);
     
-    // 2. Check rate limit using the fingerprint as the key
-    return await ratelimit.limit(identifier);
+    // 2. Check both rate limits
+    const [minRes, dayRes] = await Promise.all([
+      minuteRateLimit.limit(identifier),
+      dailyRateLimit.limit(identifier)
+    ]);
+
+    // 3. Return failure if either limit is hit
+    if (!minRes.success) return minRes;
+    if (!dayRes.success) return dayRes;
+
+    return minRes;
   }
 }

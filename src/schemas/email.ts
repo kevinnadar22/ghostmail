@@ -9,4 +9,14 @@ export const emailSchema = z.object({
   from: z.string().optional(),
 });
 
+export const emailFormSchema = z.object({
+  to: z.string().email("Invalid email address").min(1, "Recipient is required"),
+  fromName: z.string().optional(),
+  subject: z.string().optional(),
+  body: z.string().optional(),
+});
+
+
 export type EmailRequest = z.infer<typeof emailSchema>;
+export type EmailFormValues = z.infer<typeof emailFormSchema>;
+

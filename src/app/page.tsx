@@ -5,13 +5,15 @@ import { config } from '@/config';
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import {
-  Send,
   MessageSquarePlus,
   Ghost,
   AlertCircle,
   History,
   Loader2
 } from 'lucide-react';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { emailFormSchema, type EmailFormValues } from '@/schemas';
 
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -28,13 +30,23 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 
-
 const App: React.FC = () => {
-  const [formData, setFormData] = useState({
-    to: '',
-    fromName: '',
-    subject: '',
-    body: '',
+  const {
+    register,
+    handleSubmit,
+    control,
+    setValue,
+    watch,
+    reset,
+    formState: { errors }
+  } = useForm<EmailFormValues>({
+    resolver: zodResolver(emailFormSchema),
+    defaultValues: {
+      to: '',
+      fromName: '',
+      subject: '',
+      body: '',
+    }
   });
 
   const [captchaToken, setCaptchaToken] = useState<string>("");
@@ -69,22 +81,23 @@ const App: React.FC = () => {
     }
   }, []);
 
-  const executeSend = async (keys: string[]) => {
+  const executeSend = async (data: EmailFormValues, keys: string[]) => {
     const toastId = toast.loading("Sending email... Please wait");
     try {
       await sendEmail({
-        to: formData.to,
-        fromName: formData.fromName,
-        subject: formData.subject || "No Subject",
-        html: formData.body,
+        to: data.to,
+        fromName: data.fromName,
+        subject: data.subject || "No Subject",
+        html: (data.body && data.body !== "<p></p>") ? data.body : " ",
         files: keys,
         captchaToken: captchaToken,
       });
 
+
       toast.dismiss(toastId);
 
       // Reset form on success
-      setFormData(prev => ({ ...prev, to: '', subject: '', body: '', fromName: '' }));
+      reset();
       setFiles([]);
       setUploadProgress({});
       setFailedUploads([]);
@@ -101,9 +114,10 @@ const App: React.FC = () => {
     }
   };
 
-  const handleSend = async () => {
-    if (!formData.to || !formData.body) {
-      toast.error("Recipient and message body are required.");
+  const onSubmit = async (data: EmailFormValues) => {
+    const isBodyEmpty = !data.body || data.body === "<p></p>";
+    if (isBodyEmpty && files.length === 0) {
+      toast.error("Please provide a message or at least one attachment.");
       return;
     }
 
@@ -118,8 +132,9 @@ const App: React.FC = () => {
       return;
     }
 
+
     // Save history
-    const normalizedEmail = formData.to.trim();
+    const normalizedEmail = data.to.trim();
     if (normalizedEmail) {
       const newHistory = [
         normalizedEmail,
@@ -140,7 +155,7 @@ const App: React.FC = () => {
         try {
           const result = await uploadFile({
             file,
-            onProgress: (progress) => {
+            onProgress: (progress: number) => {
               setUploadProgress(prev => ({ ...prev, [index]: progress }));
             }
           });
@@ -160,15 +175,15 @@ const App: React.FC = () => {
       return;
     }
 
-    await executeSend(currentUploadedKeys);
+    await executeSend(data, currentUploadedKeys);
   };
 
   // Automatically continue sending after verification
   useEffect(() => {
-    if (captchaToken && formData.to && formData.body) {
-      handleSend();
+    if (captchaToken) {
+      handleSubmit(onSubmit)();
     }
-  }, [captchaToken]);
+  }, [captchaToken, handleSubmit]);
 
   // Execute Turnstile when it becomes visible
   useEffect(() => {
@@ -176,6 +191,8 @@ const App: React.FC = () => {
       turnstileRef.current.execute();
     }
   }, [showCaptcha]);
+
+  const formData = watch();
 
   return (
     <div className="min-h-screen flex flex-col items-center py-10 px-4 sm:px-6 lg:px-8 selection:bg-zinc-800 selection:text-zinc-100">
@@ -196,7 +213,7 @@ const App: React.FC = () => {
       {/* Main Composer Card */}
       <div className="w-full max-w-3xl bg-background border border-border shadow-sm p-1">
 
-        <div className="p-5 sm:p-8 space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="p-5 sm:p-8 space-y-6">
 
           {/* Top Inputs: To & From */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -205,16 +222,17 @@ const App: React.FC = () => {
                 label="Recipient (To)"
                 type="email"
                 placeholder="victim@example.com"
-                value={formData.to}
-                onChange={(e) => setFormData({ ...formData, to: e.target.value })}
+                {...register("to")}
               />
+              {errors.to && <span className="text-[10px] text-red-500 pl-1">{errors.to.message}</span>}
               {recentEmails.length > 0 && (
                 <div className="flex flex-wrap items-center gap-2 pl-1 animate-in fade-in slide-in-from-top-1 duration-300">
                   <History size={10} className="text-muted-foreground/50" />
                   {recentEmails.slice(0, 2).map((email) => (
                     <button
                       key={email}
-                      onClick={() => setFormData(prev => ({ ...prev, to: email }))}
+                      type="button"
+                      onClick={() => setValue("to", email, { shouldValidate: true })}
                       className="text-[10px] text-muted-foreground hover:text-zinc-200 bg-surface/50 hover:bg-surface border border-transparent hover:border-zinc-700 px-2 py-0.5 transition-all cursor-pointer truncate max-w-[180px]"
                       title={`Use ${email}`}
                     >
@@ -225,39 +243,50 @@ const App: React.FC = () => {
               )}
             </div>
 
-            <Input
-              label="Alias (From) (Optional)"
-              type="text"
-              placeholder="Someone Mysterious"
-              value={formData.fromName}
-              onChange={(e) => setFormData({ ...formData, fromName: e.target.value })}
-            />
+            <div className="flex flex-col gap-1.5">
+              <Input
+                label="Alias (From) (Optional)"
+                type="text"
+                placeholder="Someone Mysterious"
+                {...register("fromName")}
+              />
+              {errors.fromName && <span className="text-[10px] text-red-500 pl-1">{errors.fromName.message}</span>}
+            </div>
           </div>
 
           {/* Subject Line */}
-          <Input
-            label="Subject (Optional)"
-            type="text"
-            placeholder="Regarding the secret project..."
-            className="font-medium"
-            value={formData.subject}
-            onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-          />
+          <div className="flex flex-col gap-1.5">
+            <Input
+              label="Subject (Optional)"
+              type="text"
+              placeholder="Regarding the secret project..."
+              className="font-medium"
+              {...register("subject")}
+            />
+            {errors.subject && <span className="text-[10px] text-red-500 pl-1">{errors.subject.message}</span>}
+          </div>
 
           {/* Editor */}
           <div className="space-y-1.5">
             <div className="flex justify-between items-end">
               <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider ml-1">Message</label>
             </div>
-            <RichEditor
-              key={editorKey}
-              value={formData.body}
-              onChange={(html) => setFormData({ ...formData, body: html })}
-              onFilesChange={setFiles}
-              uploadProgress={uploadProgress}
-              failedUploads={failedUploads}
-              placeholder="Compose your encrypted message here... Drag & Drop files supported."
+            <Controller
+              name="body"
+              control={control}
+              render={({ field }) => (
+                <RichEditor
+                  key={editorKey}
+                  value={field.value ?? ""}
+                  onChange={field.onChange}
+                  onFilesChange={setFiles}
+                  uploadProgress={uploadProgress}
+                  failedUploads={failedUploads}
+                  placeholder="Compose your encrypted message here... Drag & Drop files supported."
+                />
+              )}
             />
+            {errors.body && <span className="text-[10px] text-red-500 pl-1">{errors.body.message}</span>}
             <p className="text-[10px] text-muted-foreground pl-1 flex items-center gap-1">
               <AlertCircle size={10} />
               <span>Files and images are embedded directly. Large attachments may impact delivery speed.</span>
@@ -295,7 +324,7 @@ const App: React.FC = () => {
 
             <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto justify-end">
               <Button
-                onClick={handleSend}
+                type="submit"
                 disabled={isSending}
                 className="w-full sm:w-auto min-w-[120px]"
               >
@@ -310,7 +339,7 @@ const App: React.FC = () => {
             </div>
           </div>
 
-        </div>
+        </form>
       </div>
 
       {/* Footer / Feedback Trigger */}
@@ -350,15 +379,13 @@ const App: React.FC = () => {
             </ul>
           </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setIsConfirmOpen(false)} disabled={isSending}>Cancel</Button>
-            <Button variant="secondary" onClick={() => executeSend(uploadedKeys)} disabled={isSending}>
+            <Button variant="ghost" type="button" onClick={() => setIsConfirmOpen(false)} disabled={isSending}>Cancel</Button>
+            <Button variant="secondary" type="button" onClick={() => executeSend(formData, uploadedKeys)} disabled={isSending}>
               {isSending ? <Loader2 size={16} className="animate-spin" /> : "Send Anyway"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-
 
       <FeedbackModal
         isOpen={isFeedbackOpen}

@@ -6,7 +6,7 @@ export function useSendEmail() {
   return useMutation({
     mutationFn: sendEmail,
     onSuccess: () => {
-      toast.success("Email sent successfully");
+      toast.success("Email sent successfully! Check spam folders too.");
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to send email");

@@ -201,6 +201,24 @@ const App: React.FC = () => {
             <p className="text-sm text-muted-foreground">Untraceable communication</p>
           </div>
         </div>
+
+        <div className="flex items-center gap-4 sm:gap-6">
+          <a
+            href="https://mariakevin.in"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[9px] sm:text-[10px] uppercase tracking-widest text-muted-foreground hover:text-zinc-300 transition-colors border-b border-zinc-800 pb-0.5"
+          >
+            Contact
+          </a>
+          <button
+            onClick={() => setIsFeedbackOpen(true)}
+            className="group inline-flex items-center gap-1.5 sm:gap-2 text-[9px] sm:text-[10px] uppercase tracking-widest text-muted-foreground hover:text-zinc-300 transition-colors border-b border-zinc-800 pb-0.5 whitespace-nowrap"
+          >
+            <MessageSquarePlus size={10} className="sm:size-[12px]" />
+            <span>Feedback</span>
+          </button>
+        </div>
       </div>
 
       {/* Main Composer Card */}
@@ -327,24 +345,6 @@ const App: React.FC = () => {
         </form>
       </div>
 
-      {/* Footer / Feedback Trigger */}
-      <div className="mt-12 text-center flex justify-center items-center gap-6">
-        <a
-          href="https://mariakevin.in"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-xs font-medium text-muted-foreground hover:text-zinc-300 transition-colors"
-        >
-          Contact Kevin
-        </a>
-        <button
-          onClick={() => setIsFeedbackOpen(true)}
-          className="group inline-flex items-center gap-2 px-4 py-2 text-xs font-medium text-muted-foreground hover:text-zinc-300 transition-colors"
-        >
-          <MessageSquarePlus size={14} className="group-hover:scale-110 transition-transform" />
-          <span>Request a Feature</span>
-        </button>
-      </div>
 
       {/* Modals */}
       <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>

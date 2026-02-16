@@ -6,13 +6,12 @@ import { MailService } from "@/service/mail";
 import { emailSchema } from "@/schemas";
 import * as ApiResponse from "@/helpers/api-response";
 import { parseZodError } from "@/helpers/api-errors";
+import { getClientInfo } from "@/helpers/request";
 
 export async function POST(req: NextRequest) {
     try {
         // 1. Identify Identification Signals
-        const ip = req.headers.get("cf-connecting-ip") ?? req.headers.get("x-forwarded-for")?.split(",")[0] ?? "127.0.0.1";
-        const userAgent = req.headers.get("user-agent") || "unknown";
-        const timezone = req.headers.get("x-timezone") || "unknown";
+        const { ip, userAgent, timezone } = getClientInfo(req);
 
         // 2. Parse and Validate Body
         const json = await req.json();

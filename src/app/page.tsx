@@ -312,6 +312,8 @@ const App: React.FC = () => {
                 ref={turnstileRef}
                 siteKey={config.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
                 onSuccess={(token) => {
+
+                  // if the loading toast exists, dismiss it
                   if (captchaToastIdRef.current) {
                     toast.dismiss(captchaToastIdRef.current);
                     captchaToastIdRef.current = null;
@@ -320,6 +322,8 @@ const App: React.FC = () => {
                 }}
                 onExpire={() => {
                   setCaptchaToken("");
+
+                  // if the loading toast exists, dismiss it
                   if (captchaToastIdRef.current) {
                     toast.dismiss(captchaToastIdRef.current);
                     captchaToastIdRef.current = null;
@@ -328,6 +332,8 @@ const App: React.FC = () => {
                 onError={(error) => {
                   console.error("Turnstile error:", error);
                   setCaptchaToken("");
+
+                  // if the loading toast exists, dismiss it
                   if (captchaToastIdRef.current) {
                     toast.dismiss(captchaToastIdRef.current);
                     captchaToastIdRef.current = null;

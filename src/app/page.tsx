@@ -50,6 +50,7 @@ const App: React.FC = () => {
   });
 
   const [captchaToken, setCaptchaToken] = useState<string>("");
+  const captchaToastIdRef = React.useRef<string | number | null>(null);
   const turnstileRef = React.useRef<any>(null);
 
   const [files, setFiles] = useState<File[]>([]);
@@ -122,7 +123,9 @@ const App: React.FC = () => {
 
     if (!captchaToken) {
       turnstileRef.current?.execute();
-      toast.info("Verifying security...");
+      if (!captchaToastIdRef.current) {
+        captchaToastIdRef.current = toast.loading("Verifying security...");
+      }
       return;
     }
 
@@ -309,12 +312,26 @@ const App: React.FC = () => {
                 ref={turnstileRef}
                 siteKey={config.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
                 onSuccess={(token) => {
+                  if (captchaToastIdRef.current) {
+                    toast.dismiss(captchaToastIdRef.current);
+                    captchaToastIdRef.current = null;
+                  }
                   setCaptchaToken(token);
                 }}
-                onExpire={() => setCaptchaToken("")}
+                onExpire={() => {
+                  setCaptchaToken("");
+                  if (captchaToastIdRef.current) {
+                    toast.dismiss(captchaToastIdRef.current);
+                    captchaToastIdRef.current = null;
+                  }
+                }}
                 onError={(error) => {
                   console.error("Turnstile error:", error);
                   setCaptchaToken("");
+                  if (captchaToastIdRef.current) {
+                    toast.dismiss(captchaToastIdRef.current);
+                    captchaToastIdRef.current = null;
+                  }
                   toast.error("Security verification failed. Please try again.");
                 }}
                 options={{

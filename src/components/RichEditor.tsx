@@ -237,6 +237,7 @@ export const RichEditor: React.FC<RichEditorProps> = ({ value, onChange, onFiles
             <div className="flex justify-between items-center mb-2 px-1">
               <span className="text-xs text-muted-foreground font-medium">Attachments ({attachedFiles.length})</span>
               <button 
+                type="button"
                 onClick={clearAllFiles}
                 className="text-xs text-red-400 hover:text-red-300 flex items-center gap-1 transition-colors"
               >
@@ -277,6 +278,7 @@ export const RichEditor: React.FC<RichEditorProps> = ({ value, onChange, onFiles
                    </div>
                 ) : (
                   <button 
+                    type="button"
                     onClick={() => removeFile(index)}
                     className={`absolute right-1 top-1/2 -translate-y-1/2 p-1 hover:bg-zinc-800 transition-colors ${failedUploads?.includes(index) ? 'text-red-500 hover:text-red-400' : 'text-muted-foreground hover:text-foreground'}`}
                   >
@@ -310,7 +312,7 @@ export const RichEditor: React.FC<RichEditorProps> = ({ value, onChange, onFiles
             </div>
           </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setIsLinkDialogOpen(false)}>Cancel</Button>
+            <Button type="button" variant="ghost" onClick={() => setIsLinkDialogOpen(false)}>Cancel</Button>
             <Button type="button" onClick={applyLink}>Save Link</Button>
           </DialogFooter>
         </DialogContent>

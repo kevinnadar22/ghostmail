@@ -215,6 +215,7 @@ const App: React.FC = () => {
             Contact
           </a>
           <button
+            type="button"
             onClick={() => setIsFeedbackOpen(true)}
             className="group inline-flex items-center gap-1.5 sm:gap-2 text-[9px] sm:text-[10px] uppercase tracking-widest text-muted-foreground hover:text-zinc-300 transition-colors border-b border-zinc-800 pb-0.5 whitespace-nowrap"
           >

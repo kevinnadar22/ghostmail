@@ -20,10 +20,10 @@ export class MailService {
     const { to, subject, html, fromName, attachments } = params;
     let fromEmail = "";
     if (fromName) {
-      fromEmail = fromName + " <anonymous@mariakevin.in>";
+      fromEmail = fromName + " <ghostmail@mariakevin.in>";
     }
     else {
-      fromEmail = "anonymous@mariakevin.in";
+      fromEmail = "GhostMail <ghostmail@mariakevin.in>";
     }
 
     return await resend.emails.send({

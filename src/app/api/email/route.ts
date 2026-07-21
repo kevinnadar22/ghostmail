@@ -1,19 +1,12 @@
 import { NextRequest } from "next/server";
-import { RatelimitService } from "@/service/ratelimit-service";
-import { CaptchaService } from "@/service/captcha";
 import { FileService } from "@/service/file-service";
 import { MailService } from "@/service/mail";
 import { emailSchema } from "@/schemas";
 import * as ApiResponse from "@/helpers/api-response";
 import { parseZodError } from "@/helpers/api-errors";
-import { getClientInfo } from "@/helpers/request";
 
 export async function POST(req: NextRequest) {
     try {
-        // 1. Identify Identification Signals
-        const { ip, userAgent, timezone } = getClientInfo(req);
-
-        // 2. Parse and Validate Body
         const json = await req.json();
         const result = emailSchema.safeParse(json);
 
@@ -21,35 +14,12 @@ export async function POST(req: NextRequest) {
             return ApiResponse.BadRequest(parseZodError(result.error));
         }
 
-        const { to, subject, html, files, captchaToken, fromName } = result.data;
+        const { to, subject, html, files, fromName } = result.data;
 
-        // 3. Apply Rate Limiting (Pass email to check for exclusions)
-        // If 'to' is an array, we check based on the first recipient
-        const emailToCheck = Array.isArray(to) ? to[0] : to;
-        const { success } = await RatelimitService.check({
-            ip,
-            userAgent,
-            timezone,
-            email: emailToCheck
-        });
-        
-        if (!success) {
-            return ApiResponse.TooManyRequests("Too many requests. Please try again later.");
-        }
-
-
-        // 4. Captcha Verification
-        const isCaptchaValid = await CaptchaService.verify(captchaToken, ip);
-        if (!isCaptchaValid) {
-            return ApiResponse.Forbidden("Captcha verification failed.");
-        }
-
-        // 5. Fetch Attachments via FileService
         const attachments = files && Array.isArray(files)
             ? await FileService.getFilesAsAttachments(files)
             : [];
 
-        // 6. Send Email via MailService
         const emailResult = await MailService.sendEmail({
             to,
             subject,

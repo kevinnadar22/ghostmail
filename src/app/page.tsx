@@ -1,6 +1,5 @@
 "use client";
 
-import { Turnstile } from '@marsidev/react-turnstile';
 import { config } from '@/config';
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
@@ -49,10 +48,6 @@ const App: React.FC = () => {
     }
   });
 
-  const [captchaToken, setCaptchaToken] = useState<string>("");
-  const captchaToastIdRef = React.useRef<string | number | null>(null);
-  const turnstileRef = React.useRef<any>(null);
-
   const [files, setFiles] = useState<File[]>([]);
   const [uploadProgress, setUploadProgress] = useState<Record<number, number>>({});
   const [failedUploads, setFailedUploads] = useState<number[]>([]);
@@ -90,7 +85,6 @@ const App: React.FC = () => {
         subject: data.subject || "No Subject",
         html: (data.body && data.body !== "<p></p>") ? data.body : " ",
         files: keys,
-        captchaToken: captchaToken,
       });
 
 
@@ -102,10 +96,8 @@ const App: React.FC = () => {
       setUploadProgress({});
       setFailedUploads([]);
       setUploadedKeys([]);
-      setCaptchaToken("");
       setEditorKey(prev => prev + 1);
       setIsConfirmOpen(false);
-      if (turnstileRef.current) turnstileRef.current.reset();
       toast.success("Email sent successfully! Check spam folders too.");
     } catch (error: any) {
       toast.dismiss(toastId);
@@ -118,14 +110,6 @@ const App: React.FC = () => {
     const isBodyEmpty = !data.body || data.body === "<p></p>";
     if (isBodyEmpty && files.length === 0) {
       toast.error("Please provide a message or at least one attachment.");
-      return;
-    }
-
-    if (!captchaToken) {
-      turnstileRef.current?.execute();
-      if (!captchaToastIdRef.current) {
-        captchaToastIdRef.current = toast.loading("Verifying security...");
-      }
       return;
     }
 
@@ -179,14 +163,6 @@ const App: React.FC = () => {
 
     await executeSend(data, currentUploadedKeys);
   };
-
-  // Automatically continue sending after verification
-  useEffect(() => {
-    if (captchaToken) {
-      handleSubmit(onSubmit)();
-    }
-  }, [captchaToken, handleSubmit]);
-
 
   const formData = watch();
 
@@ -307,48 +283,6 @@ const App: React.FC = () => {
 
           {/* Action Footer */}
           <div className="pt-4 flex flex-col sm:flex-row justify-end items-end border-t border-border mt-6 gap-4">
-
-            {config.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
-              <Turnstile
-                ref={turnstileRef}
-                siteKey={config.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
-                onSuccess={(token) => {
-
-                  // if the loading toast exists, dismiss it
-                  if (captchaToastIdRef.current) {
-                    toast.dismiss(captchaToastIdRef.current);
-                    captchaToastIdRef.current = null;
-                  }
-                  setCaptchaToken(token);
-                }}
-                onExpire={() => {
-                  setCaptchaToken("");
-
-                  // if the loading toast exists, dismiss it
-                  if (captchaToastIdRef.current) {
-                    toast.dismiss(captchaToastIdRef.current);
-                    captchaToastIdRef.current = null;
-                  }
-                }}
-                onError={(error) => {
-                  console.error("Turnstile error:", error);
-                  setCaptchaToken("");
-
-                  // if the loading toast exists, dismiss it
-                  if (captchaToastIdRef.current) {
-                    toast.dismiss(captchaToastIdRef.current);
-                    captchaToastIdRef.current = null;
-                  }
-                  toast.error("Security verification failed. Please try again.");
-                }}
-                options={{
-                  theme: "dark",
-                  appearance: "interaction-only",
-                  execution: "execute",
-                }}
-              />
-            )}
-
             <div className="flex flex-col sm:flex-row items-end gap-4 w-full sm:w-auto justify-end">
               <Button
                 type="submit"

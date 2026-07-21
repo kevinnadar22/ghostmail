@@ -15,7 +15,6 @@ GhostMail is a privacy-focused web application that allows users to send anonymo
     *   Maximum total size limit of **25MB**.
     *   Files are securely uploaded to AWS S3 via presigned URLs.
     *   Specific error feedback for file limits.
-*   **Smart Captcha Protection**: Integrated with Cloudflare Turnstile (invisible mode) to prevent spam.
 *   **User-Friendly Interface**:
     *   Modern, dark-themed UI.
     *   Real-time upload progress indicators.
@@ -32,7 +31,6 @@ GhostMail is a privacy-focused web application that allows users to send anonymo
 *   **State Management**: React Query (TanStack Query)
 *   **Email Service**: [Resend](https://resend.com/)
 *   **Storage**: AWS S3
-*   **Captcha**: Cloudflare Turnstile
 *   **UI Components**: Lucide Icons, Sonner (Toasts)
 
 ## Getting Started
@@ -43,7 +41,6 @@ GhostMail is a privacy-focused web application that allows users to send anonymo
 *   npm or yarn
 *   AWS S3 Bucket credentials
 *   Resend API Key
-*   Cloudflare Turnstile Site Key & Secret
 
 ### Installation
 
@@ -70,14 +67,6 @@ GhostMail is a privacy-focused web application that allows users to send anonymo
 
     # Resend Configuration (for sending emails)
     RESEND_API_KEY=re_123456789
-
-    # Cloudflare Turnstile Configuration (for captcha)
-    NEXT_PUBLIC_TURNSTILE_SITE_KEY=your_site_key
-    TURNSTILE_SECRET=your_secret_key
-
-    # Upstash Redis (Optional, if used for rate limiting)
-    UPSTASH_REDIS_REST_URL=your_redis_url
-    UPSTASH_REDIS_REST_TOKEN=your_redis_token
     ```
 
 4.  **Run the development server:**
@@ -96,7 +85,6 @@ GhostMail is a privacy-focused web application that allows users to send anonymo
 5.  Attach files by clicking the paperclip icon or dragging and dropping.
     *   *Note: Files exceeding the size limit will typically trigger an error toast.*
 6.  Click **"Send Anonymously"**.
-    *   *The invisible captcha will verify you automatically.*
     *   *If uploads fail, you will be prompted to either Retry/Cancel or Send Anyway.*
 
 ## 🤝 Contributing

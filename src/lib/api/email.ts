@@ -6,7 +6,6 @@ export interface SendEmailPayload {
   subject: string;
   html: string;
   files?: string[];
-  captchaToken: string;
 }
 
 export interface SendEmailResponse {
